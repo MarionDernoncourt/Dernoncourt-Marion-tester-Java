@@ -159,4 +159,44 @@ public class FareCalculatorServiceTest {
 
 		assertEquals(0, ticket.getPrice());
 	}
+	
+	@Test
+	public void calculateFareCarWithDiscountDescription () {
+		Date inTime = new Date();
+		inTime.setTime(System.currentTimeMillis() - (3 * 60 * 60 * 1000)); //3h parking time should give 3h for parking fare
+		Date outTime = new Date();
+		ParkingSpot parkingSpot = new ParkingSpot(1, ParkingType.CAR, false);
+		
+		ticket.setInTime(inTime);
+		ticket.setOutTime(outTime);
+		ticket.setParkingSpot(parkingSpot);
+		
+		fareCalculatorService.calculateFare(ticket, true);
+		
+		assertEquals(((3 * Fare.CAR_RATE_PER_HOUR) * 0.95), ticket.getPrice()); // with discount
+		
+	fareCalculatorService.calculateFare(ticket, false);
+		
+		assertEquals((3 * Fare.CAR_RATE_PER_HOUR), ticket.getPrice()); // no discount
+	}
+	
+	@Test
+	public void calculateFareBikeWithDiscountDescription () {
+		Date inTime = new Date();
+		inTime.setTime(System.currentTimeMillis() - (3 * 60 * 60 * 1000)); //3h parking time should give 3h for parking fare
+		Date outTime = new Date();
+		ParkingSpot parkingSpot = new ParkingSpot(1, ParkingType.BIKE, false);
+		
+		ticket.setInTime(inTime);
+		ticket.setOutTime(outTime);
+		ticket.setParkingSpot(parkingSpot);
+		
+		fareCalculatorService.calculateFare(ticket, true);
+		
+		assertEquals(((3 * Fare.BIKE_RATE_PER_HOUR) * 0.95), ticket.getPrice()); // with discount
+		
+		fareCalculatorService.calculateFare(ticket, false);
+		
+		assertEquals((3 * Fare.BIKE_RATE_PER_HOUR), ticket.getPrice()); // no discount
+	}
 }

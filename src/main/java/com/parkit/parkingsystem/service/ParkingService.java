@@ -33,6 +33,7 @@ public class ParkingService {
 			if (parkingSpot != null && parkingSpot.getId() > 0) {
 				String vehicleRegNumber = getVehichleRegNumber();
 				parkingSpot.setAvailable(false);
+
 				parkingSpotDAO.updateParking(parkingSpot);// allot this parking space and mark it's availability as
 															// false
 
@@ -46,6 +47,7 @@ public class ParkingService {
 				ticket.setInTime(inTime);
 				ticket.setOutTime(null);
 				ticketDAO.saveTicket(ticket);
+				
 
 				if (ticketDAO.getNbTicket(vehicleRegNumber) > 1) {
 					System.out.println(
@@ -66,7 +68,8 @@ public class ParkingService {
 		return inputReaderUtil.readVehicleRegistrationNumber();
 	}
 
-	public ParkingSpot getNextParkingNumberIfAvailable() {
+	
+	public ParkingSpot getNextParkingNumberIfAvailable()  {
 		int parkingNumber = 0;
 		ParkingSpot parkingSpot = null;
 		try {
@@ -79,9 +82,12 @@ public class ParkingService {
 			}
 		} catch (IllegalArgumentException ie) {
 			logger.error("Error parsing user input for type of vehicle", ie);
+			
 		} catch (Exception e) {
 			logger.error("Error fetching next available parking slot", e);
+		
 		}
+		
 		return parkingSpot;
 	}
 

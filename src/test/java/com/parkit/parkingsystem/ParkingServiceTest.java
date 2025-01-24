@@ -1,12 +1,10 @@
 package com.parkit.parkingsystem;
 
-import com.parkit.parkingsystem.constants.Fare;
 import com.parkit.parkingsystem.constants.ParkingType;
 import com.parkit.parkingsystem.dao.ParkingSpotDAO;
 import com.parkit.parkingsystem.dao.TicketDAO;
 import com.parkit.parkingsystem.model.ParkingSpot;
 import com.parkit.parkingsystem.model.Ticket;
-import com.parkit.parkingsystem.service.FareCalculatorService;
 import com.parkit.parkingsystem.service.ParkingService;
 import com.parkit.parkingsystem.util.InputReaderUtil;
 import org.junit.jupiter.api.BeforeEach;
@@ -33,13 +31,12 @@ public class ParkingServiceTest {
 	@Mock
 	private static TicketDAO ticketDAO;
 
-	private FareCalculatorService fareCalculatorService = new FareCalculatorService();
-
 	Ticket ticket = new Ticket();
 
 	@BeforeEach
 	private void setUpPerTest() {
 		try {
+
 			lenient().when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("ABCDEF");
 
 			ParkingSpot parkingSpot = new ParkingSpot(1, ParkingType.CAR, false);
@@ -62,67 +59,77 @@ public class ParkingServiceTest {
 	}
 
 	@Test
-	public void processExitingVehicleTest() {
-		// GIVEN
-		String vehicleRegNumber = ticket.getVehicleRegNumber();
-		ticket = ticketDAO.getTicket(vehicleRegNumber);
-		Date outTime = new Date(System.currentTimeMillis());
-		ticket.setOutTime(outTime);
-		when(ticketDAO.getNbTicket(vehicleRegNumber)).thenReturn(2);
+	public void testGetNextParkingNumberIfAvailableParkingNumberWrongArgument() throws Exception {
 
-		// WHEN
-		boolean discount = ticketDAO.getNbTicket(vehicleRegNumber) > 1;
-		fareCalculatorService.calculateFare(ticket, discount);
-		double fare = ticket.getPrice();
-		double fareRounded = Math.round(fare * 100.0) / 100.0;
-		
-		if (ticketDAO.updateTicket(ticket)) {
-			ParkingSpot parkingSpot = ticket.getParkingSpot();
-			parkingSpot.setAvailable(true);
-			parkingSpotDAO.updateParking(parkingSpot);
-			System.out.println("Please pay the parking fare:" + ticket.getPrice());
-			System.out.println(
-					"Recorded out-time for vehicle number:" + ticket.getVehicleRegNumber() + " is:" + outTime);
-		} else {
-			System.out.println("Unable to update ticket information. Error occurred");
-		}
-		// THEN
-		 verify(parkingSpotDAO, Mockito.times(1)).updateParking(any(ParkingSpot.class));
+		when(inputReaderUtil.readSelection()).thenReturn(3);
 
-		// THEN
-		assertEquals(fareRounded, (1.43));
+		ParkingSpot parkingSpot = parkingService.getNextParkingNumberIfAvailable();
+
+		assertEquals(null, parkingSpot);
 
 	}
-	
+
 	@Test
-	public void processExitingVehicleWithoutDiscountTest() {
-		// GIVEN
-		String vehicleRegNumber = ticket.getVehicleRegNumber();
-		ticket = ticketDAO.getTicket(vehicleRegNumber);
-		Date outTime = new Date(System.currentTimeMillis());
-		ticket.setOutTime(outTime);
-		when(ticketDAO.getNbTicket(vehicleRegNumber)).thenReturn(2);
+	public void testGetNextParkingNumberIfAvailableParkingNumberNotFound() {
 
-		// WHEN
-		boolean discount = ticketDAO.getNbTicket(vehicleRegNumber) < 1;
-		fareCalculatorService.calculateFare(ticket, discount);
-		double fare = ticket.getPrice();
-		double fareRounded = Math.round(fare * 100.0) / 100.0;
+		when(inputReaderUtil.readSelection()).thenReturn(1);
+		when(parkingSpotDAO.getNextAvailableSlot(ParkingType.CAR)).thenReturn(0);
 
-		if (ticketDAO.updateTicket(ticket)) {
-			ParkingSpot parkingSpot = ticket.getParkingSpot();
-			parkingSpot.setAvailable(true);
-			parkingSpotDAO.updateParking(parkingSpot);
-			System.out.println("Please pay the parking fare:" + ticket.getPrice());
-			System.out.println(
-					"Recorded out-time for vehicle number:" + ticket.getVehicleRegNumber() + " is:" + outTime);
-		} else {
-			System.out.println("Unable to update ticket information. Error occurred");
-		}
+		ParkingSpot parkingSpot = parkingService.getNextParkingNumberIfAvailable();
+
+		verify(parkingSpotDAO, times(1)).getNextAvailableSlot(ParkingType.CAR);
+		assertEquals(null, parkingSpot);
+	}
+
+	@Test
+	public void testGetNextParkingNumberIfAvailable() {
+
+		when(inputReaderUtil.readSelection()).thenReturn(1);
+		when(parkingSpotDAO.getNextAvailableSlot(ParkingType.CAR)).thenReturn(3);
+
+		ParkingSpot parkingSpot = parkingService.getNextParkingNumberIfAvailable();
+
+		assertEquals(3, parkingSpot.getId());
+		assertTrue(parkingSpot.isAvailable());
+	}
+
+	@Test
+	public void processExitingVehicleTestUnableUpdate() {
+
+		System.out.println(ticket.getVehicleRegNumber());
+		when(ticketDAO.updateTicket(ticket)).thenReturn(false);
+
+		parkingService.processExitingVehicle();
+
+		verify(parkingSpotDAO, never()).updateParking(any(ParkingSpot.class));
+	}
+
+	@Test
+	public void ProcessIncomingVehicle() {
+
+		when(inputReaderUtil.readSelection()).thenReturn(1);
+		when(parkingSpotDAO.getNextAvailableSlot(ParkingType.CAR)).thenReturn(2);
+
+		parkingService.processIncomingVehicle();
+
+		verify(ticketDAO, times(1)).saveTicket(any(Ticket.class));
+		verify(parkingSpotDAO, times(1)).updateParking(any(ParkingSpot.class));
+
+	}
+
+	@Test
+	public void processExitingVehicleTest() {
+
+		when(ticketDAO.getNbTicket(ticket.getVehicleRegNumber())).thenReturn(1);
+
+		parkingService.processExitingVehicle();
+
+		double ExpectedFare = 1.5;
+		double fareRounded = Math.round(ticket.getPrice() * 100.0) / 100.0;
+
 		// THEN
-		 verify(parkingSpotDAO, Mockito.times(1)).updateParking(any(ParkingSpot.class));
-
-		assertEquals(fareRounded, (1.5));
+		verify(ticketDAO, Mockito.times(1)).updateTicket(any(Ticket.class));
+		assertEquals(ExpectedFare, fareRounded);
 
 	}
 

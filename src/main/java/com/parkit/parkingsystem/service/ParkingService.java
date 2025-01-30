@@ -121,12 +121,12 @@ public class ParkingService {
 		if(ticketDAO.getNbTicket(vehicleRegNumber) > 1 ) { // discount true if vehiculeRegNumber est supérieur a 1
 			 discount = true;
 		}
-			
 			fareCalculatorService.calculateFare(ticket, discount);
 			if (ticketDAO.updateTicket(ticket)) {
 				ParkingSpot parkingSpot = ticket.getParkingSpot();
 				parkingSpot.setAvailable(true);
 				parkingSpotDAO.updateParking(parkingSpot);
+				
 				System.out.println("Please pay the parking fare:" + ticket.getPrice());
 				System.out.println(
 						"Recorded out-time for vehicle number:" + ticket.getVehicleRegNumber() + " is:" + outTime);

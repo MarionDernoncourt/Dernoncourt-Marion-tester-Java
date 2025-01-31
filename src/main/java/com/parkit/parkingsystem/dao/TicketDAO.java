@@ -40,7 +40,6 @@ public class TicketDAO {
 			dataBaseConfig.closeConnection(con);
 		}
 
-
 	}
 
 	public Ticket getTicket(String vehicleRegNumber) {
@@ -110,7 +109,7 @@ public class TicketDAO {
 		} finally {
 			dataBaseConfig.closeConnection(con);
 		}
-		System.out.println(nbTicket);
+
 		return nbTicket;
 	}
 }

@@ -30,6 +30,7 @@ public class ParkingService {
 	public void processIncomingVehicle() {
 		try {
 			ParkingSpot parkingSpot = getNextParkingNumberIfAvailable();
+			
 			if (parkingSpot != null && parkingSpot.getId() > 0) {
 				String vehicleRegNumber = getVehichleRegNumber();
 				parkingSpot.setAvailable(false);
@@ -114,6 +115,7 @@ public class ParkingService {
 		try {
 			String vehicleRegNumber = getVehichleRegNumber();
 			Ticket ticket = ticketDAO.getTicket(vehicleRegNumber);
+			
 			Date outTime = new Date();
 			ticket.setOutTime(outTime);
 			boolean discount = false; // pas de remise par defaut

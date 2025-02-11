@@ -8,6 +8,7 @@ import com.parkit.parkingsystem.model.ParkingSpot;
 import com.parkit.parkingsystem.model.Ticket;
 import com.parkit.parkingsystem.service.ParkingService;
 import com.parkit.parkingsystem.util.InputReaderUtil;
+
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,7 +23,6 @@ import static org.mockito.Mockito.when;
 import java.util.Date;
 
 import static org.junit.jupiter.api.Assertions.*;
-
 
 @ExtendWith(MockitoExtension.class)
 public class ParkingDataBaseIT {
@@ -54,7 +54,7 @@ public class ParkingDataBaseIT {
 
 	@AfterAll
 	private static void tearDown() {
-		dataBasePrepareService.clearDataBaseEntries();
+		 dataBasePrepareService.clearDataBaseEntries();
 	}
 
 	@Test
@@ -70,7 +70,6 @@ public class ParkingDataBaseIT {
 		String vehRegNumber = inputReaderUtil.readVehicleRegistrationNumber();
 
 		Ticket ticket = ticketDAO.getTicket(vehRegNumber);
-
 		assertEquals(ticket.getParkingSpot().getId(), parkingSpotAvailable.getId());
 		assertFalse(ticketDAO.getTicket(vehRegNumber).getParkingSpot().isAvailable());
 
@@ -93,7 +92,7 @@ public class ParkingDataBaseIT {
 		Date inTime = new Date();
 		inTime.setTime(System.currentTimeMillis() - 60 * 60 * 1000);
 		ticket.setInTime(inTime);
-		ticketDAO.saveTicket(ticket);
+		ticketDAO.updateTicketForInTime(ticket);
 
 		// process Exiting Vehicule
 		parkingService.processExitingVehicle();
@@ -109,13 +108,15 @@ public class ParkingDataBaseIT {
 	public void testParkingLotExitRecurringUser() throws Exception {
 
 		String vehRegNumber = inputReaderUtil.readVehicleRegistrationNumber();
-
-		when(ticketDAO.getNbTicket(vehRegNumber)).thenReturn(3);
-
+		
+		testParkingLotExit();
+		Thread.sleep(1000);
 		testParkingLotExit();
 
-		Ticket ticket = ticketDAO.getTicket("ABCDEF");
-		System.out.println(ticket.getPrice());
+		Ticket ticket = ticketDAO.getTicket(vehRegNumber); // ticket le plus récent
+
+		
+		System.out.println("le prixpour recurring user: " + ticket.getPrice());
 
 	}
 

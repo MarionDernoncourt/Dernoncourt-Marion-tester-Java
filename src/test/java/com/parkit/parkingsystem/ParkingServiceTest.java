@@ -66,7 +66,7 @@ public class ParkingServiceTest {
 	@Test
 	public void testGetNextParkingNumberIfAvailableParkingNumberWrongArgument() throws Exception {
 
-		when(inputReaderUtil.readSelection()).thenReturn(3);
+	when(inputReaderUtil.readSelection()).thenReturn(3);
 
 		ParkingSpot parkingSpot = parkingService.getNextParkingNumberIfAvailable();
 
@@ -95,6 +95,7 @@ public class ParkingServiceTest {
 		ParkingSpot parkingSpot = parkingService.getNextParkingNumberIfAvailable();
 
 		verify(parkingSpotDAO, times(1)).getNextAvailableSlot(ParkingType.CAR);
+		
 		assertEquals(3, parkingSpot.getId());
 		assertTrue(parkingSpot.isAvailable());
 	}
@@ -112,7 +113,7 @@ public class ParkingServiceTest {
 		
 		Ticket ticketChecked = ticketCaptor.getValue()	;
 		
-		assertNotNull(ticketChecked.getOutTime());
+		assertNotNull(ticketChecked.getOutTime()); 
 		assertFalse(ticketChecked.getParkingSpot().isAvailable());
 	}
 

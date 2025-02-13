@@ -54,7 +54,7 @@ public class ParkingDataBaseIT {
 
 	@AfterAll
 	private static void tearDown() {
-		 dataBasePrepareService.clearDataBaseEntries();
+		dataBasePrepareService.clearDataBaseEntries();
 	}
 
 	@Test
@@ -108,15 +108,14 @@ public class ParkingDataBaseIT {
 	public void testParkingLotExitRecurringUser() throws Exception {
 
 		String vehRegNumber = inputReaderUtil.readVehicleRegistrationNumber();
-		
+
 		testParkingLotExit();
 		Thread.sleep(1000);
 		testParkingLotExit();
 
 		Ticket ticket = ticketDAO.getTicket(vehRegNumber); // ticket le plus récent
 
-		
-		System.out.println("le prixpour recurring user: " + ticket.getPrice());
+		assertNotEquals(1.5, ticket.getPrice());
 
 	}
 
